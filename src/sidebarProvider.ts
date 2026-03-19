@@ -1,3 +1,4 @@
+import * as cp from 'child_process';
 import * as vscode from 'vscode';
 import axios from 'axios';
 import { extractContext } from './contextExtractor';
@@ -38,6 +39,21 @@ export class OpenClawSidebarProvider implements vscode.WebviewViewProvider {
           }
           break;
         }
+
+        case "runCommand": {
+          if (data.value) {
+            const workspaceFolders = vscode.workspace.workspaceFolders;
+            const cwd = workspaceFolders ? workspaceFolders[0].uri.fsPath : process.cwd();
+            cp.exec(data.value, { cwd }, (error, stdout, stderr) => {
+              let output = stdout;
+              if (error) output += "\nError: " + error.message;
+              if (stderr) output += "\nStderr: " + stderr;
+              webviewView.webview.postMessage({ type: 'commandResult', value: output.substring(0, 2000) });
+            });
+          }
+          break;
+        }
+
         case "applyCode": {
           if (data.value) {
             await applyCode(data.value);

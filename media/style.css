@@ -90,3 +90,7 @@ h1 { font-size: 1.4em; border-bottom: 1px solid var(--vscode-widget-border); pad
 h2 { font-size: 1.2em; }
 h3 { font-size: 1.1em; }
 blockquote { border-left: 3px solid var(--vscode-textBlockQuote-border); padding-left: 10px; color: #888; margin-left: 0; }
+
+.command-block { border-color: #007acc; }
+.run-cmd-btn { background: #007acc; }
+.run-cmd-btn:hover { background: #005f9e; }

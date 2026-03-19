@@ -37,6 +37,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.OpenClawSidebarProvider = void 0;
+const cp = __importStar(require("child_process"));
 const vscode = __importStar(require("vscode"));
 const axios_1 = __importDefault(require("axios"));
 const contextExtractor_1 = require("./contextExtractor");
@@ -72,6 +73,21 @@ class OpenClawSidebarProvider {
                     }
                     catch (error) {
                         vscode.window.showErrorMessage(`Failed to connect to OpenClaw bridge at ${bridgeUrl}`);
+                    }
+                    break;
+                }
+                case "runCommand": {
+                    if (data.value) {
+                        const workspaceFolders = vscode.workspace.workspaceFolders;
+                        const cwd = workspaceFolders ? workspaceFolders[0].uri.fsPath : process.cwd();
+                        cp.exec(data.value, { cwd }, (error, stdout, stderr) => {
+                            let output = stdout;
+                            if (error)
+                                output += "\nError: " + error.message;
+                            if (stderr)
+                                output += "\nStderr: " + stderr;
+                            webviewView.webview.postMessage({ type: 'commandResult', value: output.substring(0, 2000) });
+                        });
                     }
                     break;
                 }

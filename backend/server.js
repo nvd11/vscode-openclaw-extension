@@ -24,7 +24,7 @@ app.post('/api/chat', async (req, res) => {
       prompt += `Selected Code:\n\`\`\`\n${context.selection}\n\`\`\`\n`;
     }
     
-    prompt += "\nIf you provide code, put it in standard markdown code blocks (e.g., ```javascript ... ```).";
+    prompt += "\nIf you provide code, put it in standard markdown code blocks. If you need to run a shell command, output exactly: <run_command>your command</run_command>";
 
     const response = await axios.post(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`,

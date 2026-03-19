@@ -51,6 +51,16 @@ function renderMarkdown(text) {
   processed = processed.replace(/^# (.*$)/gim, '<h1>$1</h1>');
   processed = processed.replace(/^\> (.*$)/gim, '<blockquote>$1</blockquote>');
   
+  
+  // Command blocks
+  processed = processed.replace(/<run_command>([\s\S]*?)<\/run_command>/g, (match, cmd) => {
+    const encoded = encodeURIComponent(cmd.trim());
+    return `<div class="code-block command-block">
+      <div class="code-header">Terminal Command <button class="run-cmd-btn" data-cmd="${encoded}">Run Command</button></div>
+      <pre><code>${escapeHtml(cmd.trim())}</code></pre>
+    </div>`;
+  });
+
   // Line breaks
   processed = processed.replace(/\n/g, '<br>');
 
@@ -82,6 +92,23 @@ window.addEventListener('message', event => {
           vscode.postMessage({ type: 'applyCode', value: code });
         };
       });
+      
+      // Attach events to run command buttons
+      document.querySelectorAll('.run-cmd-btn').forEach(btn => {
+        btn.onclick = (e) => {
+          const cmd = decodeURIComponent(e.target.getAttribute('data-cmd'));
+          e.target.innerText = "Running...";
+          e.target.disabled = true;
+          vscode.postMessage({ type: 'runCommand', value: cmd });
+        };
+      });
+
+      break;
+    case "commandResult":
+      const resHtml = `<div class="msg user"><b>Command Output:</b><br><pre><code>${escapeHtml(message.value)}</code></pre></div>`;
+      document.getElementById("messages").innerHTML += resHtml;
+      document.getElementById("messages").scrollTop = document.getElementById("messages").scrollHeight;
+      vscode.postMessage({ type: "sendMessage", value: "Command Output:\n" + message.value });
       break;
   }
 });
