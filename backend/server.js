@@ -8,7 +8,11 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 
-const GEMINI_API_KEY = 'AIzaSyAV5bjo3VdXdPVtXaJ6nxZz1qXXNnFjjHs';
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+if (!GEMINI_API_KEY) {
+  console.error('FATAL: GEMINI_API_KEY is not set in environment.');
+  process.exit(1);
+}
 
 app.post('/api/chat', async (req, res) => {
   try {
