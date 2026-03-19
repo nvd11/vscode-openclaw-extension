@@ -2,7 +2,7 @@
   "name": "vscode-openclaw-extension",
   "displayName": "OpenClaw Remote Assistant",
   "description": "Talk to Alice (OpenClaw) from your VSCode sidebar",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "engines": {
     "vscode": "^1.80.0"
   },
@@ -39,7 +39,17 @@
         "command": "openclaw.helloWorld",
         "title": "OpenClaw: Hello World"
       }
-    ]
+    ],
+    "configuration": {
+      "title": "OpenClaw Assistant",
+      "properties": {
+        "openclaw.bridgeUrl": {
+          "type": "string",
+          "default": "http://localhost:3000/api/chat",
+          "description": "URL of the OpenClaw backend bridge (e.g., http://YOUR_GCP_IP:3000/api/chat)"
+        }
+      }
+    }
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",

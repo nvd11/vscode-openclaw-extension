@@ -60,8 +60,10 @@ class OpenClawSidebarProvider {
                     if (!data.value)
                         return;
                     const contextData = await (0, contextExtractor_1.extractContext)();
+                    const config = vscode.workspace.getConfiguration('openclaw');
+                    const bridgeUrl = config.get('bridgeUrl') || 'http://localhost:3000/api/chat';
                     try {
-                        const response = await axios_1.default.post('http://localhost:3000/api/chat', {
+                        const response = await axios_1.default.post(bridgeUrl, {
                             message: data.value,
                             context: contextData
                         });
@@ -69,7 +71,7 @@ class OpenClawSidebarProvider {
                         webviewView.webview.postMessage({ type: 'receiveMessage', value: reply });
                     }
                     catch (error) {
-                        vscode.window.showErrorMessage('Failed to connect to OpenClaw bridge.');
+                        vscode.window.showErrorMessage(`Failed to connect to OpenClaw bridge at ${bridgeUrl}`);
                     }
                     break;
                 }

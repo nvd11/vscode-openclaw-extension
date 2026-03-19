@@ -23,15 +23,18 @@ export class OpenClawSidebarProvider implements vscode.WebviewViewProvider {
         case "sendMessage": {
           if (!data.value) return;
           const contextData = await extractContext();
+          const config = vscode.workspace.getConfiguration('openclaw');
+          const bridgeUrl = config.get<string>('bridgeUrl') || 'http://localhost:3000/api/chat';
           try {
-            const response = await axios.post('http://localhost:3000/api/chat', {
+            
+            const response = await axios.post(bridgeUrl, {
               message: data.value,
               context: contextData
             });
             const reply = response.data.reply;
             webviewView.webview.postMessage({ type: 'receiveMessage', value: reply });
           } catch (error) {
-            vscode.window.showErrorMessage('Failed to connect to OpenClaw bridge.');
+            vscode.window.showErrorMessage(`Failed to connect to OpenClaw bridge at ${bridgeUrl}`);
           }
           break;
         }
