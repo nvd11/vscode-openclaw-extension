@@ -8,27 +8,36 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 
-// Replace with actual OpenClaw API endpoint/token
-const OPENCLAW_API = process.env.OPENCLAW_API || 'http://localhost:8000/api/chat'; 
+const GEMINI_API_KEY = 'AIzaSyAV5bjo3VdXdPVtXaJ6nxZz1qXXNnFjjHs';
 
 app.post('/api/chat', async (req, res) => {
   try {
     const { message, context } = req.body;
     
     console.log('Received message from VSCode:', message);
-    console.log('Context:', context);
 
-    // This is a stub for the real OpenClaw integration
-    // const response = await axios.post(OPENCLAW_API, { message, context });
-    // res.json({ reply: response.data.reply });
+    let prompt = `You are Alice, an AI assistant inside VSCode. The user is asking: "${message}".`;
+    if (context && context.file) {
+      prompt += `\n\nContext:\nActive File: ${context.file}\n`;
+    }
+    if (context && context.selection) {
+      prompt += `Selected Code:\n\`\`\`\n${context.selection}\n\`\`\`\n`;
+    }
+    
+    prompt += "\nIf you provide code, put it in standard markdown code blocks (e.g., ```javascript ... ```).";
 
-    // Mock response for now
-    res.json({
-      reply: `Hello from Alice! I see you are working in ${context.file}. Here is a sample code block you can apply:\n\n\`\`\`console.log('Alice says hi!');\`\`\``
-    });
+    const response = await axios.post(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`,
+      { contents: [{ parts: [{ text: prompt }] }] },
+      { headers: { 'Content-Type': 'application/json' } }
+    );
+
+    let replyText = response.data.candidates[0].content.parts[0].text;
+    res.json({ reply: replyText });
+    
   } catch (error) {
-    console.error('Error communicating with OpenClaw:', error.message);
-    res.status(500).json({ error: 'Failed to contact OpenClaw' });
+    console.error('Error:', error.response ? error.response.data : error.message);
+    res.status(500).json({ error: 'Failed to contact AI' });
   }
 });
 
