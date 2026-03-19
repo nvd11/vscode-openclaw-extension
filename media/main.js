@@ -1,33 +1,79 @@
 const vscode = acquireVsCodeApi();
 
-document.getElementById('send-btn').addEventListener('click', () => {
-  const input = document.getElementById('prompt-input').value;
+const promptInput = document.getElementById('prompt-input');
+const sendBtn = document.getElementById('send-btn');
+const msgContainer = document.getElementById('messages');
+
+function sendMessage() {
+  const input = promptInput.value.trim();
   if (!input) return;
 
-  const msgContainer = document.getElementById('messages');
-  msgContainer.innerHTML += `<div class="msg user"><b>You:</b> ` + input + `</div>`;
-
+  msgContainer.innerHTML += `<div class="msg user"><b>You:</b> <br>` + escapeHtml(input).replace(/\n/g, '<br>') + `</div>`;
   vscode.postMessage({ type: 'sendMessage', value: input });
-  document.getElementById('prompt-input').value = '';
+  promptInput.value = '';
+  msgContainer.scrollTop = msgContainer.scrollHeight;
+}
+
+sendBtn.addEventListener('click', sendMessage);
+
+// Auto-submit on Enter (Shift+Enter for new line)
+promptInput.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    sendMessage();
+  }
 });
+
+function escapeHtml(unsafe) {
+    return unsafe
+         .replace(/&/g, "&amp;")
+         .replace(/</g, "&lt;")
+         .replace(/>/g, "&gt;")
+         .replace(/"/g, "&quot;")
+         .replace(/'/g, "&#039;");
+}
+
+function renderMarkdown(text) {
+  // First extract code blocks to protect them from other formatting
+  const codeBlocks = [];
+  let processed = text.replace(/```(\w+)?\n([\s\S]*?)```/g, (match, lang, code) => {
+    const id = codeBlocks.length;
+    codeBlocks.push({ lang, code: code.trim() });
+    return `___CODEBLOCK_${id}___`;
+  });
+  
+  // Basic markdown formatting
+  processed = processed.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+  processed = processed.replace(/\*(.*?)\*/g, '<em>$1</em>');
+  processed = processed.replace(/`([^`]+)`/g, '<code class="inline-code">$1</code>');
+  processed = processed.replace(/^### (.*$)/gim, '<h3>$1</h3>');
+  processed = processed.replace(/^## (.*$)/gim, '<h2>$1</h2>');
+  processed = processed.replace(/^# (.*$)/gim, '<h1>$1</h1>');
+  processed = processed.replace(/^\> (.*$)/gim, '<blockquote>$1</blockquote>');
+  
+  // Line breaks
+  processed = processed.replace(/\n/g, '<br>');
+
+  // Restore code blocks with Apply button
+  processed = processed.replace(/___CODEBLOCK_(\d+)___/g, (match, id) => {
+    const block = codeBlocks[id];
+    const encoded = encodeURIComponent(block.code);
+    return `<div class="code-block">
+      <div class="code-header">${block.lang || 'code'} <button class="apply-btn" data-code="${encoded}">Apply Code</button></div>
+      <pre><code>${escapeHtml(block.code)}</code></pre>
+    </div>`;
+  });
+
+  return processed;
+}
 
 window.addEventListener('message', event => {
   const message = event.data;
   switch (message.type) {
     case 'receiveMessage':
-      const msgContainer = document.getElementById('messages');
-      // Simple parser to find code blocks and add apply buttons
-      const replyHtml = message.value.replace(/```([\s\S]*?)```/g, (match, p1) => {
-          const codeId = 'code-' + Math.random().toString(36).substr(2, 9);
-          // Save code in a data attribute
-          const encoded = encodeURIComponent(p1.trim());
-          return `<div class="code-block">
-            <pre><code>${p1.trim()}</code></pre>
-            <button class="apply-btn" data-code="${encoded}">Apply Code</button>
-          </div>`;
-      });
-
-      msgContainer.innerHTML += `<div class="msg alice"><b>Alice:</b> ` + replyHtml + `</div>`;
+      const replyHtml = renderMarkdown(message.value);
+      msgContainer.innerHTML += `<div class="msg alice"><b>Alice:</b> <br>` + replyHtml + `</div>`;
+      msgContainer.scrollTop = msgContainer.scrollHeight;
       
       // Attach events to new buttons
       document.querySelectorAll('.apply-btn').forEach(btn => {
