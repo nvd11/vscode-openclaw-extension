@@ -1,0 +1,56 @@
+body {
+  font-family: var(--vscode-font-family);
+  color: var(--vscode-editor-foreground);
+  background-color: var(--vscode-editor-background);
+  margin: 0;
+  padding: 10px;
+}
+#chat-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+#messages {
+  flex: 1;
+  overflow-y: auto;
+  margin-bottom: 10px;
+}
+.msg {
+  margin-bottom: 8px;
+}
+.user { color: var(--vscode-terminal-ansiBlue); }
+.alice { color: var(--vscode-terminal-ansiGreen); }
+.input-area {
+  display: flex;
+  flex-direction: column;
+}
+textarea {
+  resize: none;
+  height: 60px;
+  background-color: var(--vscode-input-background);
+  color: var(--vscode-input-foreground);
+  border: 1px solid var(--vscode-input-border);
+  padding: 5px;
+  margin-bottom: 5px;
+}
+button {
+  background-color: var(--vscode-button-background);
+  color: var(--vscode-button-foreground);
+  border: none;
+  padding: 6px;
+  cursor: pointer;
+}
+button:hover { background-color: var(--vscode-button-hoverBackground); }
+.code-block {
+  background-color: var(--vscode-editorWidget-background);
+  border: 1px solid var(--vscode-widget-border);
+  padding: 5px;
+  margin-top: 5px;
+}
+pre { margin: 0; }
+.apply-btn {
+  margin-top: 5px;
+  background-color: var(--vscode-button-secondaryBackground);
+  color: var(--vscode-button-secondaryForeground);
+}
+.apply-btn:hover { background-color: var(--vscode-button-secondaryHoverBackground); }
